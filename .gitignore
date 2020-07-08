@@ -1,0 +1,8 @@
+target
+*.class
+*.log
+*.jar
+
+# IntelliJ IDEA specific generated resources
+*.iml
+.idea
