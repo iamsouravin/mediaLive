@@ -1,5 +1,6 @@
 package com.amazonaws.examples;
 
+import com.amazonaws.examples.utils.ResourceUtils;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +17,7 @@ public class AppTest {
         assertNotNull(response, "Response object should be created.");
         assertNotNull(response.get("id"), "Channel id should be available.");
         assertNotNull(response.get("arn"), "Channel arn should be available.");
-        assertEquals(response.get("name"), "MyEML_Channel_1", "Channel name must match input.");
+        assertEquals("MyEML_Channel_1", response.get("name"), "Channel name must match input.");
         assertNotNull(response.get("state"), "Channel state should be available.");
     }
 }

@@ -12,6 +12,7 @@ import com.amazonaws.examples.deserialize.OutputGroupSettingsDeserializer;
 import com.amazonaws.examples.deserialize.OutputSettingsDeserializer;
 import com.amazonaws.examples.deserialize.TimecodeConfigDeserializer;
 import com.amazonaws.examples.deserialize.VideoCodecSettingsDeserializer;
+import com.amazonaws.examples.utils.ResourceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -57,44 +58,51 @@ import software.amazon.awssdk.services.medialive.model.VideoCodecSettings;
 
 public class ElementalMediaLiveProcessor {
   public static final String MEDIA_LIVE_ACCESS_ROLE = "MediaLiveAccessRole";
+  public static final String AMAZON_SSM_READ_ONLY_ACCESS_POLICY_ARN =
+      "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess";
+  public static final String MEDIA_LIVE_CUSTOM_POLICY = "MediaLiveCustomPolicy";
+  public static final String REQUEST_ID_PREFIX = "request-";
   private final String TRUST_DOCUMENT =
       ResourceUtils.getInstance().loadResource("/IamRoleTrustDocument.json");
   private final String POLICY_DOCUMENT =
       ResourceUtils.getInstance().loadResource("/IamRoleInlinePolicyDocument.json");
-  private final String DEFAULT_INPUT_SG_WHITELIST_CIDR = System.getenv("DEFAULT_INPUT_SG_WHITELIST_CIDR");
-  private final String DEFAULT_RTMP_INPUT_NAME = System.getenv("DEFAULT_RTMP_INPUT_NAME");
+  private final String[] DEFAULT_INPUT_SG_WHITELIST_CIDR =
+      ResourceUtils.getInstance()
+          .getEnvAsArray("DEFAULT_INPUT_SG_WHITELIST_CIDR", "0.0.0.0/0");
+  private final String DEFAULT_RTMP_INPUT_NAME =
+      ResourceUtils.getInstance().getEnv("DEFAULT_RTMP_INPUT_NAME", "Default_RTMP_Input");
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  private final MediaLiveClient mediaLiveClient;
+  private final MediaLiveClient emlClient;
   private final IamClient iamClient;
 
   private final ObjectMapper mapper;
 
   public ElementalMediaLiveProcessor() {
-    mediaLiveClient = DependencyFactory.mediaLiveClient();
+    emlClient = DependencyFactory.mediaLiveClient();
     iamClient = DependencyFactory.iamClient();
 
     mapper = initializeMapper();
   }
 
   private ObjectMapper initializeMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    SimpleModule module = new SimpleModule();
-    module.addDeserializer(Channel.class, new ChannelDeserializer());
-    module.addDeserializer(EncoderSettings.class, new EncoderSettingsDeserializer());
-    module.addDeserializer(OutputGroupSettings.class, new OutputGroupSettingsDeserializer());
-    module.addDeserializer(
-        MediaPackageGroupSettings.class, new MediaPackageGroupSettingsDeserializer());
-    module.addDeserializer(OutputSettings.class, new OutputSettingsDeserializer());
-    module.addDeserializer(
-        MediaPackageOutputSettings.class, new MediaPackageOutputSettingsDeserializer());
-    module.addDeserializer(AudioCodecSettings.class, new AudioCodecSettingsDeserializer());
-    module.addDeserializer(AacSettings.class, new AacSettingsDeserializer());
-    module.addDeserializer(VideoCodecSettings.class, new VideoCodecSettingsDeserializer());
-    module.addDeserializer(H264Settings.class, new H264SettingsDeserializer());
-    module.addDeserializer(InputSpecification.class, new InputSpecificationDeserializer());
-    module.addDeserializer(TimecodeConfig.class, new TimecodeConfigDeserializer());
+    SimpleModule module = new SimpleModule()
+        .addDeserializer(Channel.class, new ChannelDeserializer())
+        .addDeserializer(EncoderSettings.class, new EncoderSettingsDeserializer())
+        .addDeserializer(OutputGroupSettings.class, new OutputGroupSettingsDeserializer())
+        .addDeserializer(
+            MediaPackageGroupSettings.class, new MediaPackageGroupSettingsDeserializer())
+        .addDeserializer(OutputSettings.class, new OutputSettingsDeserializer())
+        .addDeserializer(
+            MediaPackageOutputSettings.class, new MediaPackageOutputSettingsDeserializer())
+        .addDeserializer(AudioCodecSettings.class, new AudioCodecSettingsDeserializer())
+        .addDeserializer(AacSettings.class, new AacSettingsDeserializer())
+        .addDeserializer(VideoCodecSettings.class, new VideoCodecSettingsDeserializer())
+        .addDeserializer(H264Settings.class, new H264SettingsDeserializer())
+        .addDeserializer(InputSpecification.class, new InputSpecificationDeserializer())
+        .addDeserializer(TimecodeConfig.class, new TimecodeConfigDeserializer());
 
+    ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(module);
 
     return mapper;
@@ -128,8 +136,7 @@ public class ElementalMediaLiveProcessor {
 
     CreateChannelRequest createChannelRequest = builder.build();
 
-    CreateChannelResponse createChannelResponse =
-        mediaLiveClient.createChannel(createChannelRequest);
+    CreateChannelResponse createChannelResponse = emlClient.createChannel(createChannelRequest);
     logger.info("New channel created.");
     logger.info("Channel ID: {}", createChannelResponse.channel().id());
     logger.info("Channel ARN: {}", createChannelResponse.channel().arn());
@@ -153,27 +160,24 @@ public class ElementalMediaLiveProcessor {
     InputSecurityGroup inSg = createInputSecurityGroup(DEFAULT_INPUT_SG_WHITELIST_CIDR);
     Input input = createRtmpInput(DEFAULT_RTMP_INPUT_NAME, DEFAULT_RTMP_INPUT_NAME, inSg);
     inputAttachments = new ArrayList<>();
-    InputAttachment.Builder inputAttachmentBuilder = InputAttachment.builder();
-    inputAttachmentBuilder.inputId(input.id());
-    inputAttachmentBuilder.inputAttachmentName(input.name());
-    inputAttachmentBuilder.inputSettings(inputSettingsBuilder -> inputSettingsBuilder
-          .sourceEndBehavior(InputSourceEndBehavior.CONTINUE)
-          .inputFilter(InputFilter.AUTO)
-          .filterStrength(1)
-          .deblockFilter(InputDeblockFilter.DISABLED)
-          .denoiseFilter(InputDenoiseFilter.DISABLED)
-          .smpte2038DataPreference(Smpte2038DataPreference.IGNORE));
+    InputAttachment.Builder inputAttachmentBuilder = InputAttachment.builder()
+        .inputId(input.id())
+        .inputAttachmentName(input.name())
+        .inputSettings(inputSettingsBuilder -> inputSettingsBuilder
+            .sourceEndBehavior(InputSourceEndBehavior.CONTINUE)
+            .inputFilter(InputFilter.AUTO)
+            .filterStrength(1)
+            .deblockFilter(InputDeblockFilter.DISABLED)
+            .denoiseFilter(InputDenoiseFilter.DISABLED)
+            .smpte2038DataPreference(Smpte2038DataPreference.IGNORE));
     inputAttachments.add(inputAttachmentBuilder.build());
     return inputAttachments;
   }
 
   /**
-   * If "roleArn" is provided on Channel JSON input then
-   *   assign the provided arn to channel.
-   * Else
-   *   If "MediaLiveAccessRole" is already defined then
-   *     assign it to channel
-   *   Else create a new role and assign it to channel
+   * If "roleArn" is provided on Channel JSON input then assign the provided arn to channel. Else If
+   * "MediaLiveAccessRole" is already defined then assign it to channel Else create a new role and
+   * assign it to channel
    *
    * @param channel channel object parsed from input
    * @param builder instance of {@link CreateChannelRequest.Builder}
@@ -191,8 +195,8 @@ public class ElementalMediaLiveProcessor {
   public Input createRtmpInput(String inputName, String inputDestinationStreamName,
       InputSecurityGroup inSg) {
     logger.info("Creating RTMP Input with name '{}'...", inputName);
-    final String requestId = "request-" + UUID.randomUUID().toString();
-    CreateInputResponse createInputResponse = mediaLiveClient.createInput(builder -> {
+    final String requestId = REQUEST_ID_PREFIX + UUID.randomUUID().toString();
+    CreateInputResponse createInputResponse = emlClient.createInput(builder -> {
       List<InputDestinationRequest> inputDestinations = new ArrayList<>();
       inputDestinations.add(InputDestinationRequest
           .builder()
@@ -220,7 +224,7 @@ public class ElementalMediaLiveProcessor {
     }
 
     CreateInputSecurityGroupResponse createInputSecurityGroupResponse =
-        mediaLiveClient.createInputSecurityGroup(
+        emlClient.createInputSecurityGroup(
             builder -> builder.whitelistRules(inWhitelistRuleCidrsList));
     InputSecurityGroup inSg = createInputSecurityGroupResponse.securityGroup();
     logger.info("Created Security Group - Id: {}", inSg.id());
@@ -244,12 +248,12 @@ public class ElementalMediaLiveProcessor {
           .roleName(roleName));
 
       iamClient.attachRolePolicy(builder -> builder
-          .policyArn("arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess")
+          .policyArn(AMAZON_SSM_READ_ONLY_ACCESS_POLICY_ARN)
           .roleName(createRoleResp.role().roleName()));
 
       iamClient.putRolePolicy(builder -> builder
           .policyDocument(POLICY_DOCUMENT)
-          .policyName("MediaLiveCustomPolicy")
+          .policyName(MEDIA_LIVE_CUSTOM_POLICY)
           .roleName(createRoleResp.role().roleName()));
 
       emlIamRole = createRoleResp.role();
