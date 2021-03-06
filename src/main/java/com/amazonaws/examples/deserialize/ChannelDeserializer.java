@@ -1,17 +1,22 @@
 package com.amazonaws.examples.deserialize;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import static com.amazonaws.examples.deserialize.JsonUtils.consumeArray;
+import static com.amazonaws.examples.deserialize.JsonUtils.validateTokenType;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import software.amazon.awssdk.services.medialive.model.Channel;
 import software.amazon.awssdk.services.medialive.model.ChannelClass;
 import software.amazon.awssdk.services.medialive.model.EncoderSettings;
@@ -19,9 +24,6 @@ import software.amazon.awssdk.services.medialive.model.InputAttachment;
 import software.amazon.awssdk.services.medialive.model.InputSpecification;
 import software.amazon.awssdk.services.medialive.model.LogLevel;
 import software.amazon.awssdk.services.medialive.model.OutputDestination;
-
-import static com.amazonaws.examples.deserialize.JsonUtils.consumeArray;
-import static com.amazonaws.examples.deserialize.JsonUtils.validateTokenType;
 
 public class ChannelDeserializer extends JsonDeserializer<Channel> {
   private final Logger logger = LoggerFactory.getLogger(getClass());
