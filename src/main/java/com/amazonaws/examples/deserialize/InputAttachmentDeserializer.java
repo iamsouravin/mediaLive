@@ -1,17 +1,19 @@
 package com.amazonaws.examples.deserialize;
 
+import static com.amazonaws.examples.deserialize.JsonUtils.validateTokenType;
+
+import java.io.IOException;
+
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import software.amazon.awssdk.services.medialive.model.InputAttachment;
 import software.amazon.awssdk.services.medialive.model.InputSettings;
-
-import static com.amazonaws.examples.deserialize.JsonUtils.validateTokenType;
 
 public class InputAttachmentDeserializer extends JsonDeserializer<InputAttachment> {
   private final Logger logger = LoggerFactory.getLogger(getClass());

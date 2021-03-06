@@ -1,15 +1,19 @@
 package com.amazonaws.examples.deserialize;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import static com.amazonaws.examples.deserialize.JsonUtils.validateTokenType;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import software.amazon.awssdk.services.medialive.model.AudioSelector;
 import software.amazon.awssdk.services.medialive.model.CaptionSelector;
 import software.amazon.awssdk.services.medialive.model.InputDeblockFilter;
@@ -18,8 +22,6 @@ import software.amazon.awssdk.services.medialive.model.InputFilter;
 import software.amazon.awssdk.services.medialive.model.InputSettings;
 import software.amazon.awssdk.services.medialive.model.InputSourceEndBehavior;
 import software.amazon.awssdk.services.medialive.model.Smpte2038DataPreference;
-
-import static com.amazonaws.examples.deserialize.JsonUtils.validateTokenType;
 
 public class InputSettingsDeserializer extends JsonDeserializer<InputSettings> {
   private final Logger logger = LoggerFactory.getLogger(getClass());

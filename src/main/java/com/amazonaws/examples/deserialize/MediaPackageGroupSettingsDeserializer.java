@@ -1,16 +1,18 @@
 package com.amazonaws.examples.deserialize;
 
+import static com.amazonaws.examples.deserialize.JsonUtils.validateTokenType;
+
+import java.io.IOException;
+
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.medialive.model.MediaPackageGroupSettings;
 
-import static com.amazonaws.examples.deserialize.JsonUtils.validateTokenType;
+import software.amazon.awssdk.services.medialive.model.MediaPackageGroupSettings;
 
 public class MediaPackageGroupSettingsDeserializer extends
     JsonDeserializer<MediaPackageGroupSettings> {
