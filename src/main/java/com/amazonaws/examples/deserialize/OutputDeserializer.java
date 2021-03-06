@@ -18,7 +18,6 @@ import software.amazon.awssdk.services.medialive.model.Output;
 import software.amazon.awssdk.services.medialive.model.OutputSettings;
 
 public class OutputDeserializer extends JsonDeserializer<Output> {
-  private static final String[] EMPTY_STRING_ARRAY = {};
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   public OutputDeserializer() {
