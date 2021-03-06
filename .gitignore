@@ -6,3 +6,8 @@ target
 # IntelliJ IDEA specific generated resources
 *.iml
 .idea
+
+# Eclipse specific generated resources
+.classpath
+.project
+.settings
