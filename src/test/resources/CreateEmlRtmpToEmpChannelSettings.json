@@ -1,21 +1,5 @@
 {
   "name": "MyEML_Channel_1",
-  "inputAttachments": [
-    {
-      "inputId": "3610112",
-      "inputAttachmentName": "SouravOBS",
-      "inputSettings": {
-        "sourceEndBehavior": "CONTINUE",
-        "inputFilter": "AUTO",
-        "filterStrength": 1,
-        "deblockFilter": "DISABLED",
-        "denoiseFilter": "DISABLED",
-        "smpte2038DataPreference": "IGNORE",
-        "audioSelectors": [],
-        "captionSelectors": []
-      }
-    }
-  ],
   "destinations": [
     {
       "id": "6wwcqg",
