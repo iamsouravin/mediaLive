@@ -39,6 +39,11 @@ public class ResourceUtils {
     }
   }
 
+  public InputStream getInputStream(String name) {
+    logger.info("Getting input stream to resource: {}", name);
+    return getClass().getResourceAsStream(name);
+  }
+
   public String getEnv(String name, String def) {
     String val;
     if ((Objects.isNull(name) || name.isEmpty())) {
