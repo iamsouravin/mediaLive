@@ -20,7 +20,6 @@ public class DependencyFactory {
   public static MediaLiveClient mediaLiveClient() {
     return MediaLiveClient.builder()
         .credentialsProvider(DefaultCredentialsProvider.create())
-        .region(Region.US_WEST_2)
         .httpClientBuilder(UrlConnectionHttpClient.builder())
         .build();
   }

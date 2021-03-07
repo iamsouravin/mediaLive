@@ -7,6 +7,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: java8
+      FunctionName: EmlCreateChannel
       Handler: com.amazonaws.examples.App::handleRequest
       Timeout: 60
       MemorySize: 512
@@ -14,6 +15,21 @@ Resources:
       # Attach policies here to give the function permission to access other AWS resources if needed
       # See: https://github.com/awslabs/serverless-application-model/blob/master/docs/policy_templates.rst
       # eg:
-      #Policies:
-      # - S3ReadPolicy:
-      #     BucketName: test-bucket
+      Policies:
+        - Statement:
+            - Sid: AllowIamRoleCreationPolicy
+              Effect: Allow
+              Action:
+                - iam:GetRole
+                - iam:CreateRole
+                - iam:AttachRolePolicy
+                - iam:PutRolePolicy
+                - iam:PassRole
+              Resource: '*'
+            - Sid: AllowMedialiveChannelCreationPolicy
+              Effect: Allow
+              Action:
+                - medialive:CreateChannel
+                - medialive:CreateInput
+                - medialive:CreateInputSecurityGroup
+              Resource: '*'

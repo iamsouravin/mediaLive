@@ -1,12 +1,15 @@
 package com.amazonaws.examples;
 
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import software.amazon.awssdk.services.medialive.model.Channel;
 
 /**
@@ -16,7 +19,7 @@ import software.amazon.awssdk.services.medialive.model.Channel;
  * @see <a href=https://docs.aws.amazon.com/lambda/latest/dg/java-handler.html>Lambda Java
  * Handler</a> for more information
  */
-public class App implements RequestHandler<String, Map<String, String>> {
+public class App implements RequestHandler<InputStream, Map<String, String>> {
   private final Logger logger = LoggerFactory.getLogger(App.class);
 
   private final ElementalMediaLiveProcessor emlProcessor;
@@ -29,7 +32,7 @@ public class App implements RequestHandler<String, Map<String, String>> {
   }
 
   @Override
-  public Map<String, String> handleRequest(final String input, final Context context) {
+  public Map<String, String> handleRequest(final InputStream input, final Context context) {
     logger.info("Received input...");
     try {
       Channel channel = emlProcessor.createChannel(input);
@@ -39,7 +42,7 @@ public class App implements RequestHandler<String, Map<String, String>> {
       response.put("name", channel.name());
       response.put("state", channel.stateAsString());
       return response;
-    } catch (JsonProcessingException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }

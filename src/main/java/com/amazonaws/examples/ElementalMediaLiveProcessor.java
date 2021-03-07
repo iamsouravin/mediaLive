@@ -16,6 +16,9 @@ import com.amazonaws.examples.utils.ResourceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -108,12 +111,12 @@ public class ElementalMediaLiveProcessor {
     return mapper;
   }
 
-  public Channel parseChannel(String input) throws JsonProcessingException {
+  public Channel parseChannel(InputStream input) throws JsonProcessingException, IOException {
     logger.info("Parsing channel JSON payload...");
     return mapper.readValue(input, Channel.class);
   }
 
-  public Channel createChannel(String input) throws JsonProcessingException {
+  public Channel createChannel(InputStream input) throws JsonProcessingException, IOException {
     return createChannel(parseChannel(input));
   }
 
@@ -257,6 +260,12 @@ public class ElementalMediaLiveProcessor {
           .roleName(createRoleResp.role().roleName()));
 
       emlIamRole = createRoleResp.role();
+      logger.info("Sleeping for 45 seconds to allow the IAM role and policy to propagate across regions...");
+      try {
+        Thread.sleep(45 * 1000);
+      } catch (InterruptedException e1) {
+        throw new RuntimeException("Waiting thread interrupted.", e1);
+      }
     }
     logger.info("Role ARN: {}", emlIamRole.arn());
     return emlIamRole;
