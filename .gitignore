@@ -14,3 +14,6 @@ target
 
 # VSCode specific generated resources
 .vscode
+
+# SAM CLI config files
+*.toml
